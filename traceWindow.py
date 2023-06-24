@@ -1,8 +1,7 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTableView, QAbstractItemView, QMenu, QHeaderView
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableView, QAbstractItemView, QMenu, QHeaderView, QPushButton, QSpacerItem, QSizePolicy
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QStandardItemModel, QStandardItem, QAction
+from PyQt6.QtGui import QStandardItemModel, QStandardItem, QAction, QFont
 from canServer import *
-from functools import partial
 import binascii
 import time
 
@@ -18,10 +17,25 @@ class TraceWindow(QWidget):
         self.traceTable = TraceWindowTable()
 
         self.layout = QVBoxLayout()
+        self.createTraceToolbar()
+
         self.layout.addWidget(self.traceTable)
         self.setLayout(self.layout)
 
         canServer.canMessageReceived.connect(self.addToTraceList)
+
+    def createTraceToolbar(self):
+        traceToolbar = QHBoxLayout()
+
+        playPauseButton = QPushButton("Ps")
+        playPauseButton.setFixedSize(24, 24)
+        traceToolbar.addWidget(playPauseButton)
+
+        # Add spacer
+        traceToolbar.addItem(QSpacerItem(
+            100, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+
+        self.layout.addLayout(traceToolbar)
 
     def addToTraceList(self, canMessage):
         if (self.traceActive):
@@ -52,24 +66,26 @@ class TraceWindowTable(QTableView):
     def appendRow(self, time, sender, data):
         rowItems = []
 
-        rowItems.append(QStandardItem("{:.5f}".format(time)))
-        rowItems.append(QStandardItem(hex(sender)[2:]))
-        rowItems.append(QStandardItem(str(sender)))
-        rowItems.append(QStandardItem(
-            binascii.hexlify(data, sep=' ', bytes_per_sep=1).decode('utf-8')))
+        rowItems.append(self.createItem("{:.5f}".format(time), "Roboto Mono"))
+        rowItems.append(self.createItem(hex(sender)[2:], "Roboto Mono"))
+        rowItems.append(self.createItem(str(sender), "Roboto Mono"))
+        rowItems.append(self.createItem(binascii.hexlify(
+            data, sep=' ', bytes_per_sep=1).decode('utf-8'), "Roboto Mono"))
 
         self.model.appendRow(rowItems)
         self.scrollToBottom()
 
+    def createItem(self, string, font):
+        item = QStandardItem(string)
+
+        font = QFont(font)
+        font.setPointSize(12)
+
+        item.setFont(font)
+        return item
+
     def setupStyle(self):
         # Setup header style
-        self.horizontalHeader().setStyleSheet(
-            """
-            QHeaderView::section {
-                text-align: left;
-            }
-            """
-        )
         pass
 
     def setupTable(self):
