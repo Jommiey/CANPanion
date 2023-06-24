@@ -21,7 +21,8 @@ class MockNode(QObject):
 
     def canSendMsg(self, bus):
         while True:
-            msgData = [random.randint(1, 50)]
+            msgData = [random.randint(0, 255)
+                       for _ in range(8)]
             msg = can.Message(arbitration_id=self.nodeId, data=msgData)
             bus.send(msg)
             time.sleep(.02)

@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTableView, QAbstractItemView, QMenu
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTableView, QAbstractItemView, QMenu, QHeaderView
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QStandardItemModel, QStandardItem, QAction
 from canServer import *
@@ -44,34 +44,51 @@ class TraceWindowTable(QTableView):
 
         self.headers = ['time', 'sender (hex)', 'sender (dec)', 'data']
 
+        self.setupHeaderMenu()
         self.setupModel()
         self.setupTable()
-        self.setupHeaderMenu()
+        self.setupStyle()
 
     def appendRow(self, time, sender, data):
         rowItems = []
 
         rowItems.append(QStandardItem("{:.5f}".format(time)))
-        rowItems.append(QStandardItem(hex(sender)))
+        rowItems.append(QStandardItem(hex(sender)[2:]))
         rowItems.append(QStandardItem(str(sender)))
         rowItems.append(QStandardItem(
-            binascii.hexlify(data).decode('utf-8')))
+            binascii.hexlify(data, sep=' ', bytes_per_sep=1).decode('utf-8')))
 
         self.model.appendRow(rowItems)
         self.scrollToBottom()
 
+    def setupStyle(self):
+        # Setup header style
+        self.horizontalHeader().setStyleSheet(
+            """
+            QHeaderView::section {
+                text-align: left;
+            }
+            """
+        )
+        pass
+
     def setupTable(self):
-        self.horizontalHeader().setStretchLastSection(True)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setShowGrid(False)
         self.setEditTriggers(QTableView.NoEditTriggers)
+
+        # Setup horizontal header
+        self.horizontalHeader().setStretchLastSection(True)
+        self.horizontalHeader().setSectionsMovable(True)
+        self.horizontalHeader().setDragEnabled(True)
+        self.horizontalHeader().setDragDropMode(QHeaderView.InternalMove)
+
+        # Setup vertical header
         self.verticalHeader().hide()
-        self.verticalHeader().setDefaultSectionSize(5)
-        self.horizontalHeader().setContextMenuPolicy(Qt.CustomContextMenu)
-        self.horizontalHeader().customContextMenuRequested.connect(self.showMenuHeader)
+        self.verticalHeader().setDefaultSectionSize(5)  # Can I make this smaller?
 
     def resetTable(self):
-        self.setupModel()
+        self.model.removeRows(0, self.model.rowCount())
 
     def setupModel(self):
         self.model = QStandardItemModel()
@@ -79,45 +96,29 @@ class TraceWindowTable(QTableView):
         self.model.setHorizontalHeaderLabels(self.headers)
 
     def setupHeaderMenu(self):
-        self.headerMenu = QMenu(self)
+        self.headerMenu = HeaderMenu(self.headers, self)
+        self.horizontalHeader().setContextMenuPolicy(Qt.CustomContextMenu)
+        self.horizontalHeader().customContextMenuRequested.connect(
+            self.headerMenu.showMenu)
+
+
+class HeaderMenu(QMenu):
+    def __init__(self, headers, table):
+        super().__init__()
+
+        self.headers = headers
+        self.table = table
 
         for header in self.headers:
             action = QAction(header, self)
             action.setCheckable(True)
+            action.setChecked(True)
+            action.triggered.connect(
+                lambda checked, h=header: self.toggleHeader(h, checked))
+            self.addAction(action)
 
-            # Handle checked status for headers active from start
-            if header in self.headers:
-                action.setChecked(True)
+    def toggleHeader(self, header, checked):
+        self.table.setColumnHidden(self.headers.index(header), not checked)
 
-            action.triggered.connect(partial(self.setHeader, header))
-            self.headerMenu.addAction(action)
-
-    def showMenuHeader(self, position):
-        self.headerMenu.exec_(self.mapToGlobal(position))
-
-    def setHeader(self, header):
-        # Check for the case where only one header item is active. Don't allow empty header.
-        if len(self.headers) == 1:
-            return
-
-        if header in self.headers:
-            # Remove header from active headers
-            self.headers.remove(header)
-        else:
-            # Add header to active headers
-            self.headers.append(header)
-
-        # Redraw headers
-        self.model.setHorizontalHeaderLabels(self.headers)
-
-    def formatTime(self, timestamp):
-        return timestamp
-
-    def formatSender(self, sender):
-        return sender
-
-    def formatReceiver(self, receiver):
-        return receiver
-
-    def formatData(self, data):
-        return data
+    def showMenu(self, position):
+        self.exec_(self.table.viewport().mapToGlobal(position))

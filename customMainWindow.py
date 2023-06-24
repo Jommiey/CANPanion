@@ -4,9 +4,8 @@ from signalPlot import *
 from canServer import *
 from toolbar import *
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QMainWindow, QTabWidget, QHBoxLayout
+from PyQt6.QtWidgets import QMainWindow, QTabWidget
 import configparser
-import pyqtgraph as pg
 
 
 class CustomMainWindow(QMainWindow):
