@@ -1,7 +1,8 @@
-from customMainWindow import *
-from toolbar import *
+from traceWindow.traceWindow import *
+from customMainWindow.customMainWindow import *
+from customMainWindow.customMainWindowToolBar import *
 from PyQt6.QtWidgets import QApplication
-from mockNode import MockNode
+from testSuite.mockNode import MockNode
 
 
 def main():

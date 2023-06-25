@@ -1,20 +1,13 @@
-from traceWindow import *
-from graphicsWindow import *
-from signalPlot import *
-from canServer import *
-from toolbar import *
-from PyQt6.QtCore import Qt
+from graphicsWindow.graphicsWindow import *
+from graphicsWindow.signalPlot import *
+from canServer.canServer import *
+from customMainWindow.customMainWindowToolBar import *
 from PyQt6.QtWidgets import QMainWindow, QTabWidget
-import configparser
 
 
 class CustomMainWindow(QMainWindow):
     def __init__(self, traceWindow, graphicsWindow):
         super().__init__()
-
-        # Read config
-        configParser = configparser.ConfigParser()
-        configParser.read('./colorscheme.ini')
 
         # Customize main window
         self.setWindowTitle("CANPanion")
