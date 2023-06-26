@@ -37,7 +37,9 @@ class TraceWindowTable(QTableView):
         rowItems.append(self.createItem(binascii.hexlify(
             data, sep=' ', bytes_per_sep=1).decode('utf-8'), "Roboto Mono"))
         self.model.appendRow(rowItems)
-        self.scrollToBottom()
+
+        if not self.paused:
+            self.scrollToBottom()
 
     def createItem(self, string, font):
         """
