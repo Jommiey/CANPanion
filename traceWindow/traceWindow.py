@@ -38,6 +38,10 @@ class TraceWindow(QWidget):
         self.setLayout(self.layout)
 
         canServer.canMessageReceived.connect(self.addToTraceList)
+        self.toolbar.pauseButtonPressed.connect(self.pauseTrace)
+
+    def pauseTrace(self, paused):
+        self.traceTable.setPaused(paused)
 
     def addToTraceList(self, canMessage):
         if (self.traceActive):
@@ -49,6 +53,7 @@ class TraceWindow(QWidget):
         if status:
             # Store start time and clear old entries of the table
             self.traceStartTime = time.time()
+            self.pauseTrace(False)
             self.traceTable.resetTable()
             self.toolbar.pauseButton.setDisabled(False)
         else:
