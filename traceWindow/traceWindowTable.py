@@ -11,7 +11,7 @@ class TraceWindowTable(QTableView):
         self.headers = ['time', 'sender', 'data']
         self.paused = False
 
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         self.setupModel()
         self.setupTable()
@@ -21,8 +21,12 @@ class TraceWindowTable(QTableView):
         self.paused = paused
 
         if paused:
+            self.setVerticalScrollBarPolicy(
+                Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
             self.model.pause()
         elif not paused:
+            self.setVerticalScrollBarPolicy(
+                Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             self.model.resume()
 
     def appendRow(self, time, sender, data):

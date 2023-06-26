@@ -13,9 +13,10 @@ class ToolBar(QToolBar):
 
         self.setIconSize(QSize(32, 32))
         self.setStyleSheet("background-color: #353e4d;")
+        self.setMovable(False)
 
         # Add start button
-        self.startButton = QAction('Record', self)
+        self.startButton = QAction(self)
         self.startButtonIcon = qta.icon('fa5s.power-off', color='#3CB043')
         self.startButton.setIcon(self.startButtonIcon)
         self.startButton.triggered.connect(self.startButtonClicked)
@@ -31,10 +32,10 @@ class ToolBar(QToolBar):
         # Set start button depending on status
         if self.startButtonActive:
             self.startButtonIcon = qta.icon(
-                'fa5s.circle', color='#F05454')
+                'fa5s.circle', color='#f44336')
         else:
             self.startButtonIcon = qta.icon(
-                'fa5s.power-off', color='#3CB043')
+                'fa5s.power-off', color='#589d5d')
         self.startButton.setIcon(self.startButtonIcon)
 
         # Emit status of start button to listeners

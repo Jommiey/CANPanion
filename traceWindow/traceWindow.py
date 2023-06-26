@@ -58,6 +58,7 @@ class TraceWindow(QWidget):
             self.toolbar.pauseButton.setDisabled(False)
         else:
             # Disable toolbar pausebutton
+            self.pauseTrace(True)
             self.toolbar.pauseButton.setDisabled(True)
 
         self.toolbar.pauseButton.setChecked(not status)
