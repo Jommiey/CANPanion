@@ -3,25 +3,38 @@ from PyQt6.QtCore import *
 from PyQt6.QtGui import *
 from canServer.canServer import *
 from traceWindow.traceWindowToolBar import *
-import binascii
+from traceWindow.traceWindowTable import *
+from traceWindow.traceWindowFilter import *
 import time
 
 
 class TraceWindow(QWidget):
+    """
+    Container for the trace window
+    """
+
     def __init__(self, canServer):
         super().__init__()
 
+        # Setup variables
         self.traceActive = False
         self.traceStartTime = time.time()
-        self.traceTableModel = QStandardItemModel()
-        self.traceTable = TraceWindowTable()
-        self.toolbar = TraceWindowToolBar()
-        self.toolbar.addButton("pause", True)
-        self.toolbar.addSpacer(100, 10)
 
+        # setup trace table view
+        self.traceTable = TraceWindowTable()
+
+        # Setup toolbar
+        self.toolbar = TraceWindowToolBar()
+
+        # Setup filter view
+        self.filterView = TraceWindowFilter()
+
+        # Setup grid layout
         self.layout = QGridLayout()
-        # self.layout.addWidget(self.toolbar, 0, 0)
-        self.layout.addWidget(self.traceTable, 1, 0)
+        self.layout.setVerticalSpacing(0)
+        self.layout.addWidget(self.toolbar, 0, 0, 1, 2)
+        self.layout.addWidget(self.filterView, 1, 0)
+        self.layout.addWidget(self.traceTable, 1, 1)
         self.setLayout(self.layout)
 
         canServer.canMessageReceived.connect(self.addToTraceList)
@@ -37,137 +50,10 @@ class TraceWindow(QWidget):
             # Store start time and clear old entries of the table
             self.traceStartTime = time.time()
             self.traceTable.resetTable()
+            self.toolbar.pauseButton.setDisabled(False)
+        else:
+            # Disable toolbar pausebutton
+            self.toolbar.pauseButton.setDisabled(True)
 
+        self.toolbar.pauseButton.setChecked(not status)
         self.traceActive = status
-
-
-class TraceWindowTable(QTableView):
-    def __init__(self):
-        super().__init__()
-
-        self.headers = ['time', 'sender', 'data']
-        self.active = True
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-
-        self.setupModel()
-        self.setupTable()
-        self.setupHeader()
-
-    def appendRow(self, time, sender, data):
-        """
-        Append a row to the table
-        """
-        rowItems = []
-        self.rowItemsPaused = []
-
-        rowItems.append(self.createItem("{:.5f}".format(time), "Roboto Mono"))
-        rowItems.append(self.createItem(hex(sender)[2:], "Roboto Mono"))
-        rowItems.append(self.createItem(binascii.hexlify(
-            data, sep=' ', bytes_per_sep=1).decode('utf-8'), "Roboto Mono"))
-
-        # Append rows
-        self.model.appendRow(rowItems)
-        self.scrollToBottom()
-
-    def createItem(self, string, font):
-        """
-        Function to create an item to append to a row
-        """
-        item = QStandardItem(string)
-
-        font = QFont(font)
-        font.setPointSize(12)
-
-        item.setFont(font)
-        return item
-
-    def setupTable(self):
-        self.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.setShowGrid(False)
-        self.setEditTriggers(QTableView.NoEditTriggers)
-
-        # Setup vertical header
-        self.verticalHeader().hide()
-        self.verticalHeader().setDefaultSectionSize(5)
-
-    def resetTable(self):
-        self.model.removeRows(0, self.model.rowCount())
-
-    def setupModel(self):
-        # Setup the model to handle pausing of trace
-        self.pausedModel = QStandardItemModel()
-
-        # Setup the active model
-        self.model = QStandardItemModel()
-        self.setModel(self.model)
-        self.model.setHorizontalHeaderLabels(self.headers)
-
-    def setupHeader(self):
-        self.horizontalHeaderView = HeaderView(
-            Qt.Horizontal, self.headers, self)
-        self.setHorizontalHeader(self.horizontalHeaderView)
-
-
-class HeaderView(QHeaderView):
-    def __init__(self, orientation, headers, table):
-        super().__init__(orientation)
-
-        # Setup menu for header
-        self.headerMenu = HeaderMenu(headers, table)
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.headerMenu.showMenu)
-
-        # Setup behaviour for sections
-        self.setStretchLastSection(True)
-        self.setSectionsMovable(True)
-        self.setDragEnabled(True)
-        self.setDragDropMode(QHeaderView.InternalMove)
-
-        # Style header
-        self.setDefaultAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.setStyleSheet(
-            """
-            ::section {
-                background-color: #353e4d;
-                color: #f2f2f2;
-                font-weight: bold;
-            }
-            """
-        )
-
-
-class HeaderMenu(QMenu):
-    def __init__(self, headers, table):
-        super().__init__()
-
-        self.headers = headers
-        self.table = table
-
-        for header in self.headers:
-            action = QAction(header, self)
-            action.setCheckable(True)
-            action.setChecked(True)
-            action.triggered.connect(
-                lambda checked, h=header: self.toggleHeader(h, checked))
-            self.addAction(action)
-
-    def toggleHeader(self, header, checked):
-        self.table.setColumnHidden(self.headers.index(header), not checked)
-
-    def showMenu(self, position):
-        self.exec_(self.table.viewport().mapToGlobal(position))
-
-
-class TraceFilterWindow(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(QLabel("Test"))
-        self.setLayout(self.layout)
-
-        self.setStyleSheet(
-            """
-                border: 1px solid black;
-            """
-        )
