@@ -24,18 +24,27 @@ class CustomMainWindow(QMainWindow):
         tabs.setTabPosition(QTabWidget.TabPosition.South)
         tabs.setMovable(True)
         tabs.setDocumentMode(True)
-        tabs.setStyleSheet("QTabBar::tab {"
-                           "background: #353e4d;"
-                           "color: white;"
-                           "}"
-                           "QTabBar::tab:selected {"
-                           "background: #222831;"
-                           "}")
+        tabs.setStyleSheet("""
+                           QTabWidget::pane {
+                            border: 0;
+                            margin: -10px;
+                           }
+                           QTabBar::tab {
+                           background: #353e4d;
+                           color: white;
+                           }
+                           QTabBar::tab:selected {
+                           background: #222831;
+                           }
+                           """)
 
         # Create the trace window
         tabs.addTab(traceWindow, "Trace")
 
         # Create the graphics window
         tabs.addTab(graphicsWindow, "Graphics")
+
+        # Create CMR window
+        tabs.addTab(QWidget(), "CMR")
 
         self.setCentralWidget(tabs)
