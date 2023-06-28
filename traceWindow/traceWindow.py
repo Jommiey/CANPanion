@@ -5,6 +5,7 @@ from canServer.canServer import *
 from traceWindow.traceWindowToolBar import *
 from traceWindow.traceWindowTable import *
 from traceWindow.traceWindowFilter import *
+from traceWindow.traceWindowSplitter import *
 import time
 
 
@@ -20,21 +21,32 @@ class TraceWindow(QWidget):
         self.traceActive = False
         self.traceStartTime = time.time()
 
-        # setup trace table view
-        self.traceTable = TraceWindowTable()
-
         # Setup toolbar
         self.toolbar = TraceWindowToolBar()
 
+        # Setup spitter view
+        self.splitterView = TraceWindowSplitter(Qt.Horizontal)
+
         # Setup filter view
         self.filterView = TraceWindowFilter()
+        self.splitterView.addWidget(self.filterView)
+
+        # setup trace table view
+        self.traceTable = TraceWindowTable()
+        self.splitterView.addWidget(self.traceTable)
 
         # Setup grid layout
         self.layout = QGridLayout()
         self.layout.setVerticalSpacing(0)
+        self.layout.setHorizontalSpacing(0)
+
         self.layout.addWidget(self.toolbar, 0, 0, 1, 2)
-        self.layout.addWidget(self.filterView, 1, 0)
-        self.layout.addWidget(self.traceTable, 1, 1)
+        self.layout.addWidget(self.splitterView, 1, 0, 1, 2)
+
+        self.layout.setRowStretch(1, 4)
+        self.layout.setColumnStretch(1, 4)
+        self.layout.setColumnStretch(0, 1)
+
         self.setLayout(self.layout)
 
         canServer.canMessageReceived.connect(self.addToTraceList)
