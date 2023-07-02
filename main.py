@@ -10,10 +10,12 @@ def main():
     app = QApplication([])
 
     # Setup can server
-    canServer = CanServer('test', 'virtual')
+    canServer = CanServer('test', 'virtual', 500000)
     canServer.startListening()
-    MockNode(0x4a, 'test', 'virtual')
-    MockNode(0x08, 'test', 'virtual')
+
+    # Mock nodes
+    MockNode(0x4a, 'test', 'virtual', 500000)
+    MockNode(0x08, 'test', 'virtual', 500000)
 
     # Setup trace window
     traceWindow = TraceWindow(canServer)

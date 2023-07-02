@@ -12,7 +12,7 @@ class CustomMainWindow(QMainWindow):
         # Customize main window
         self.setWindowTitle("CANPanion")
         self.setMinimumSize(1920, 1080)
-        self.setStyleSheet("background-color: #DDDDDD;")
+        self.setStyleSheet("background-color: #F5F5F5;")
 
         # Add toolbar
         self.toolBar = ToolBar()

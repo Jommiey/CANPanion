@@ -6,16 +6,15 @@ from PyQt6.QtCore import QObject
 
 
 class MockNode(QObject):
-    def __init__(self, nodeId, channel, interface):
+    def __init__(self, nodeId, channel, interface, bitrate):
         super().__init__()
 
         self.nodeId = nodeId
-        self.channel = channel
-        self.interface = interface
 
         # Start sending messages
-        bus = can.interface.Bus(channel=self.channel, interface=self.interface)
-        thread = threading.Thread(target=self.canSendMsg, args=(bus, ))
+        self.bus = can.interface.Bus(
+            channel=channel, interface=interface, bitrate=bitrate)
+        thread = threading.Thread(target=self.canSendMsg, args=(self.bus, ))
         thread.daemon = True
         thread.start()
 

@@ -16,7 +16,7 @@ class TraceWindowToolBar(QFrame):
         self.setLayout(self.layout)
         self.setStyleSheet(
             """
-            background-color: #353e4d;
+            background-color: #444444;
             QFrame {
                 border: 0px;
             }

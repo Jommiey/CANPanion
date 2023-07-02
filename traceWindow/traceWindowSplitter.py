@@ -35,6 +35,7 @@ class TraceWindowSplitterHandle(QSplitterHandle):
     def __init__(self, orientation, parent=None):
         super().__init__(orientation, parent)
 
+        self.collapsed = False
         self.setMouseTracking(True)
 
     def mouseDoubleClickEvent(self, event):

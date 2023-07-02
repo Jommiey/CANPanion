@@ -6,19 +6,17 @@ from PyQt6.QtCore import pyqtSignal, QObject
 class CanServer(QObject):
     canMessageReceived = pyqtSignal(can.message.Message)
 
-    def __init__(self, channel, interface):
+    def __init__(self, channel, interface, bitrate):
         super().__init__()
 
-        self.channel = channel
-        self.interface = interface
+        self.bus = can.interface.Bus(
+            channel=channel, interface=interface, bitrate=bitrate)
 
     def emitLatestCanMessage(self, message):
         self.canMessageReceived.emit(message)
 
     def startListening(self):
-        bus = can.interface.Bus(channel=self.channel,
-                                interface=self.interface, start=0)
-        thread = threading.Thread(target=self.canListen, args=(bus, ))
+        thread = threading.Thread(target=self.canListen, args=(self.bus, ))
         thread.daemon = True
         thread.start()
 

@@ -1,5 +1,5 @@
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QCheckBox, QSizePolicy, QFrame
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import *
+from PyQt6.QtCore import *
 
 
 class GraphicsWindow(QWidget):

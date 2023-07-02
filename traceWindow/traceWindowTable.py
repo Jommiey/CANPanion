@@ -52,7 +52,7 @@ class TraceWindowTable(QTableView):
         item = QStandardItem(string)
 
         font = QFont(font)
-        font.setPointSize(12)
+        font.setPointSize(8)
 
         item.setFont(font)
         return item
@@ -64,7 +64,7 @@ class TraceWindowTable(QTableView):
 
         # Setup vertical header
         self.verticalHeader().hide()
-        self.verticalHeader().setDefaultSectionSize(5)
+        self.verticalHeader().setDefaultSectionSize(20)
 
     def resetTable(self):
         self.model.removeRows(row=0, count=self.model.rowCount())
@@ -147,7 +147,7 @@ class HeaderView(QHeaderView):
         self.setStyleSheet(
             """
             ::section {
-                background-color: #353e4d;
+                background-color: #444444;
                 color: #f2f2f2;
                 font-weight: bold;
             }
