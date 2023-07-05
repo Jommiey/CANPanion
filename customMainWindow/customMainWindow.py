@@ -6,12 +6,12 @@ from PyQt6.QtWidgets import QMainWindow, QTabWidget
 
 
 class CustomMainWindow(QMainWindow):
-    def __init__(self, traceWindow, graphicsWindow):
+    def __init__(self, traceWindow, graphicsWindow, cmrWindow):
         super().__init__()
 
         # Customize main window
         self.setWindowTitle("CANPanion")
-        self.setMinimumSize(1920, 1080)
+        self.setMinimumSize(1280, 720)
         self.setStyleSheet("background-color: #F5F5F5;")
 
         # Add toolbar
@@ -38,13 +38,13 @@ class CustomMainWindow(QMainWindow):
                            }
                            """)
 
-        # Create the trace window
-        tabs.addTab(traceWindow, "Trace")
+        # Create CMR window
+        tabs.addTab(cmrWindow, "CMR")
 
         # Create the graphics window
         tabs.addTab(graphicsWindow, "Graphics")
 
-        # Create CMR window
-        tabs.addTab(QWidget(), "CMR")
+        # Create the trace window
+        # tabs.addTab(traceWindow, "Trace")
 
         self.setCentralWidget(tabs)

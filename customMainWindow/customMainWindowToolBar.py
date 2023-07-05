@@ -1,8 +1,7 @@
-from PyQt6.QtWidgets import QToolBar, QGraphicsItem
-from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
 import qtawesome as qta
-from PyQt6.QtCore import pyqtSignal
 
 
 class ToolBar(QToolBar):
@@ -12,7 +11,11 @@ class ToolBar(QToolBar):
         super().__init__()
 
         self.setIconSize(QSize(32, 32))
-        self.setStyleSheet("background-color: #EEEEEE;")
+        self.setStyleSheet(
+            """
+                background-color: #EEEEEE;
+                border: 1px solid #CCCCCC;
+            """)
         self.setMovable(False)
 
         # Add start button

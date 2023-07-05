@@ -1,6 +1,8 @@
 from traceWindow.traceWindow import *
 from customMainWindow.customMainWindow import *
 from customMainWindow.customMainWindowToolBar import *
+from cmrWindow.cmrWindow import *
+
 from PyQt6.QtWidgets import QApplication
 from testSuite.mockNode import MockNode
 
@@ -23,8 +25,11 @@ def main():
     # Create graphics window
     graphicsWindow = GraphicsWindow()
 
+    # Create CMR window
+    cmrWindow = CmrWindow()
+
     # Create main window
-    mainWindow = CustomMainWindow(traceWindow, graphicsWindow)
+    mainWindow = CustomMainWindow(traceWindow, graphicsWindow, cmrWindow)
 
     # Show the window
     mainWindow.show()
