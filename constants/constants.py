@@ -9,8 +9,12 @@ COLORS = {
         "BORDER_COLOR_FOCUSED": "#acb0be",
         "TEXT_COLOR": "#4c4f69",
         "RED": "#d20f39",
+        "RED_HOVER": "#d16163",
+        "RED_FOCUSED": "#a94447",
         "MAROON": "#e64553",
         "GREEN": "#40a02b",
+        "GREEN_HOVER": "#87b162",
+        "GREEN_FOCUSED": "#6c904a",
     },
     "DARK": {
         "BACKGROUND_COLOR": "#303446",
@@ -21,7 +25,11 @@ COLORS = {
         "BORDER_COLOR_FOCUSED": "#626880",
         "TEXT_COLOR": "#c6d0f5",
         "RED": "#e78284",
+        "RED_HOVER": "#d16163",
+        "RED_FOCUSED": "#a94447",
         "MAROON": "#ea999c",
         "GREEN": "#a6d189",
+        "GREEN_HOVER": "#87b162",
+        "GREEN_FOCUSED": "#6c904a",
     }
 }

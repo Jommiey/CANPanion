@@ -26,7 +26,7 @@ def main():
     graphicsWindow = GraphicsWindow()
 
     # Create CMR window
-    cmrWindow = CmrWindow()
+    cmrWindow = CmrWindow(canServer)
 
     # Create main window
     mainWindow = CustomMainWindow(traceWindow, graphicsWindow, cmrWindow)

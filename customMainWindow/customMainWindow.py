@@ -3,6 +3,7 @@ from graphicsWindow.signalPlot import *
 from canServer.canServer import *
 from customMainWindow.customMainWindowToolBar import *
 from constants.constants import *
+from customMainWindow.customMainWindowStyles import *
 
 from PyQt6.QtWidgets import QMainWindow, QTabWidget
 
@@ -30,19 +31,7 @@ class CustomMainWindow(QMainWindow):
         tabs.setTabPosition(QTabWidget.TabPosition.South)
         tabs.setMovable(True)
         tabs.setDocumentMode(True)
-        tabs.setStyleSheet("""
-                           QTabWidget::pane {
-                            border: 0;
-                            margin: -10px;
-                           }
-                           QTabBar::tab {
-                           background: #353e4d;
-                           color: white;
-                           }
-                           QTabBar::tab:selected {
-                           background: #222831;
-                           }
-                           """)
+        tabs.setStyleSheet(style_tabs)
 
         # Create CMR window
         tabs.addTab(cmrWindow, "CMR")

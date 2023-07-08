@@ -13,8 +13,9 @@ class ToolBar(QToolBar):
         super().__init__()
 
         self.setIconSize(QSize(32, 32))
-        self.setStyleSheet("background-color: " +
-                           COLORS[COLOR_SCHEME]["THIRD_COLOR"] + ";")
+        self.setStyleSheet(
+            f"background-color: {COLORS[COLOR_SCHEME]['THIRD_COLOR']};"
+        )
         self.setMovable(False)
 
         # Add start button
