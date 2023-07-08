@@ -1,3 +1,5 @@
+from constants.constants import *
+
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
 from PyQt6.QtCore import *
@@ -11,16 +13,14 @@ class ToolBar(QToolBar):
         super().__init__()
 
         self.setIconSize(QSize(32, 32))
-        self.setStyleSheet(
-            """
-                background-color: #EEEEEE;
-                border: 1px solid #CCCCCC;
-            """)
+        self.setStyleSheet("background-color: " +
+                           COLORS[COLOR_SCHEME]["THIRD_COLOR"] + ";")
         self.setMovable(False)
 
         # Add start button
         self.startButton = QAction(self)
-        self.startButtonIcon = qta.icon('fa5s.power-off', color='#3CB043')
+        self.startButtonIcon = qta.icon(
+            'fa5s.power-off', color=COLORS[COLOR_SCHEME]["GREEN"])
         self.startButton.setCheckable(True)
         self.startButton.setIcon(self.startButtonIcon)
         self.startButton.triggered.connect(self.startButtonClicked)
@@ -36,10 +36,10 @@ class ToolBar(QToolBar):
         # Set start button depending on status
         if self.startButtonActive:
             self.startButtonIcon = qta.icon(
-                'fa5s.circle', color='#F05454')
+                'fa5s.circle', color=COLORS[COLOR_SCHEME]["RED"])
         else:
             self.startButtonIcon = qta.icon(
-                'fa5s.power-off', color='#589d5d')
+                'fa5s.power-off', color=COLORS[COLOR_SCHEME]["GREEN"])
         self.startButton.setIcon(self.startButtonIcon)
 
         # Emit status of start button to listeners

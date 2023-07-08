@@ -2,6 +2,8 @@ from graphicsWindow.graphicsWindow import *
 from graphicsWindow.signalPlot import *
 from canServer.canServer import *
 from customMainWindow.customMainWindowToolBar import *
+from constants.constants import *
+
 from PyQt6.QtWidgets import QMainWindow, QTabWidget
 
 
@@ -11,8 +13,12 @@ class CustomMainWindow(QMainWindow):
 
         # Customize main window
         self.setWindowTitle("CANPanion")
-        self.setMinimumSize(1280, 720)
-        self.setStyleSheet("background-color: #F5F5F5;")
+        self.setMinimumWidth(1280)
+        self.setStyleSheet(
+            "background-color: " +
+            COLORS[COLOR_SCHEME]["BACKGROUND_COLOR"] + ";" +
+            "color: " + COLORS[COLOR_SCHEME]["TEXT_COLOR"] + ";"
+        )
 
         # Add toolbar
         self.toolBar = ToolBar()
