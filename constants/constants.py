@@ -1,3 +1,5 @@
+DEBUG = True
+
 COLOR_SCHEME = "DARK"
 COLORS = {
     "LIGHT": {

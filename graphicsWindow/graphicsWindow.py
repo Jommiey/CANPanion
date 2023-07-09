@@ -3,7 +3,7 @@ from PyQt6.QtCore import *
 
 
 class GraphicsWindow(QWidget):
-    def __init__(self):
+    def __init__(self, canServer):
         super().__init__()
 
         self.signals = ['ActualSpeed', 'WantedSpeed']

@@ -49,7 +49,7 @@ class TraceWindow(QWidget):
 
         self.setLayout(self.layout)
 
-        canServer.canMessageReceived.connect(self.addToTraceList)
+        # canServer.canMessageReceived.connect(self.addToTraceList)
         self.toolbar.pauseButtonPressed.connect(self.pauseTrace)
 
     def pauseTrace(self, paused):

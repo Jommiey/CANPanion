@@ -1,40 +1,30 @@
 import can
 import threading
-from PyQt6.QtCore import pyqtSignal, QObject
+from PyQt6.QtCore import *
 
 
 class CanServer(QObject):
-    canMessageReceived = pyqtSignal(can.message.Message)
-
-    def __init__(self, channel, interface, bitrate):
+    def __init__(self):
         super().__init__()
 
+        # Set up variable memory map
+        self.memoryMap = {
+            'test': 0x40567862
+        }
+
         self.bus = can.interface.Bus(
-            channel=channel, interface=interface, bitrate=bitrate)
+            channel='test', interface='virtual', bitrate=500000)
+        self.listeners = []
+        self.transmitters = []
 
-    def readVariableValueOnce(self, variableName):
-        print("Reading:", variableName)
+    def readVariableValue(self, variableName, callbackFunction, frequency):
+        # Get memory address for variable
+        if variableName not in self.memoryMap:
+            return callbackFunction(can.Message(data=[0x80, 0xF0, 0x20, 0x01, 0x00, 0x00, 0x00, 0x00]))
+
+        # Setup transmitter to send messages
         message = can.Message(arbitration_id=0x50E, data=[
-                              0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+                              0x40, 0xF0, 0x20, 0x01, 0x00, 0x00, 0x00, 0x00])
         self.bus.send(message)
-        self.bus.recv(timeout=20)
 
-    def readVariableValuePeriodically(self, variableName, period):
-        print("Reading", variableName, "every", float(period) / 1000, "s")
-        message = can.Message(arbitration_id=0x50E, data=[
-                              0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
-        self.bus.send_periodic(message, float(period) / 1000)
-
-    def emitLatestCanMessage(self, message):
-        self.canMessageReceived.emit(message)
-
-    def startListening(self):
-        thread = threading.Thread(target=self.canListen)
-        thread.daemon = True
-        thread.start()
-
-    def canListen(self):
-        while True:
-            receivedMessage = self.bus.recv()
-            if receivedMessage:
-                self.emitLatestCanMessage(receivedMessage)
+        # Setup listener to listen to response

@@ -203,7 +203,81 @@ QLineEdit:focus {
     COLORS[COLOR_SCHEME]['BORDER_COLOR_FOCUSED']
 )
 
-style_scrollArea = """
+style_scrollAreaValid = """
+QScrollArea {
+    border: 2px solid %s;
+    border-radius: 5px;
+    padding: 1px;
+}
+
+QScrollArea:hover {
+    border: 3px solid %s;
+}
+
+QScrollBar:vertical {
+    width: 10px;
+    background: %s;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical {
+    background: %s;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+    background: transparent;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    height: 0px;
+    background: transparent;
+}
+""" % (
+    COLORS[COLOR_SCHEME]['GREEN'],
+    COLORS[COLOR_SCHEME]['GREEN_HOVER'],
+    COLORS[COLOR_SCHEME]['THIRD_COLOR'],
+    COLORS[COLOR_SCHEME]['BACKGROUND_COLOR'],
+)
+
+style_scrollAreaInvalid = """
+QScrollArea {
+    border: 2px solid %s;
+    border-radius: 5px;
+    padding: 1px;
+}
+
+QScrollArea:hover {
+    border: 3px solid %s;
+}
+
+QScrollBar:vertical {
+    width: 10px;
+    background: %s;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical {
+    background: %s;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+    background: transparent;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    height: 0px;
+    background: transparent;
+}
+""" % (
+    COLORS[COLOR_SCHEME]['RED'],
+    COLORS[COLOR_SCHEME]['RED_HOVER'],
+    COLORS[COLOR_SCHEME]['THIRD_COLOR'],
+    COLORS[COLOR_SCHEME]['BACKGROUND_COLOR'],
+)
+
+style_scrollAreaInactive = """
 QScrollArea {
     border: 1px solid %s;
     border-radius: 5px;

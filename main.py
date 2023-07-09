@@ -11,19 +11,25 @@ def main():
     # Create the application
     app = QApplication([])
 
-    # Setup can server
-    canServer = CanServer('test', 'virtual', 500000)
-    canServer.startListening()
+    # Set font for application
+    font = QFontDatabase.systemFont(QFontDatabase.GeneralFont)
+    font.setFamily("Verdana")
+    font.setPointSize(12)
+    app.setFont(font)
 
-    # Mock nodes
-    MockNode(0x4a, 'test', 'virtual', 500000)
-    MockNode(0x08, 'test', 'virtual', 500000)
+    # Setup can server
+    canServer = CanServer()
+
+    # Mock ICH in debug mode
+    if DEBUG:
+        ich = MockNode(0x0E)
+        ich.start()
 
     # Setup trace window
     traceWindow = TraceWindow(canServer)
 
     # Create graphics window
-    graphicsWindow = GraphicsWindow()
+    graphicsWindow = GraphicsWindow(canServer)
 
     # Create CMR window
     cmrWindow = CmrWindow(canServer)

@@ -1,6 +1,8 @@
 from constants.constants import *
 from cmrWindow.cmrWindowStyles import *
 
+import can
+
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 import qtawesome as qta
@@ -62,9 +64,12 @@ class VariableItem(QWidget):
     """
     Class representing a variable item
     """
+    messageResponseReceived = pyqtSignal(str, str)
 
     def __init__(self):
         super().__init__()
+
+        self.messageResponseReceived.connect(self._setResultTextField)
 
         # Set layout
         self.layout = QGridLayout()
@@ -140,7 +145,7 @@ class VariableItem(QWidget):
         self.resultScrollArea.setMaximumHeight(200)
         self.resultScrollArea.setSizePolicy(
             QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
-        self.resultScrollArea.setStyleSheet(style_scrollArea)
+        self.resultScrollArea.setStyleSheet(style_scrollAreaInactive)
 
         self.resultTextField = QLabel()
         self.resultTextField.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -151,11 +156,27 @@ class VariableItem(QWidget):
         self.frameLayout.addWidget(self.resultScrollArea, 0, 4)
         self.frameLayout.setColumnStretch(4, 3)
 
+    def messageReceived(self, message):
+        self.messageResponseReceived.emit(
+            hex(message.data[0]), str(message.data[4]))
+
+    def _setResultTextField(self, status, text):
+        if status == '0x80':
+            self.resultScrollArea.setStyleSheet(style_scrollAreaInvalid)
+            self.resultTextField.setText("Unknown variable")
+        elif status == '0x60':
+            self.resultScrollArea.setStyleSheet(style_scrollAreaValid)
+            self.resultTextField.setText(text)
+        else:
+            self.resultScrollArea.setStyleSheet(style_scrollAreaInactive)
+            print('Unknown status')
+
     def sendButtonClicked(self):
         """
         Send button clicked.
         """
-        self.parentWidget().canServer.readVariableValueOnce(self.inputTextField.text())
+        self.parentWidget().canServer.readVariableValue(
+            self.inputTextField.text(), self.messageReceived, 0)
 
     def sendButtonReleased(self):
         """
@@ -175,8 +196,8 @@ class VariableItem(QWidget):
             self.timerTextField.setReadOnly(True)
 
             # Start sending of periodic message
-            self.parentWidget().canServer.readVariableValuePeriodically(
-                self.inputTextField.text(), self.timerTextField.text())
+            self.parentWidget().canServer.readVariableValue(
+                self.inputTextField.text(), self.messageReceived, int(self.timerTextField.text()))
         else:
             self.sendTimerButton.setIcon(
                 qta.icon('fa5.hourglass',
