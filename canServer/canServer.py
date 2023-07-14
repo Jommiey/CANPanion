@@ -1,30 +1,73 @@
+# Library includes
 import can
-import threading
 from PyQt6.QtCore import *
 
+# File includes
+from utilities.utilities import *
+from constants.constants import *
 
-class CanServer(QObject):
+
+class CanServer(object):
+    """
+    Can server
+    """
+
+    def __init__(self):
+        self.bus = can.interface.Bus(interface='vector',
+                                     channel=0,
+                                     bitrate=500000)
+        self.notifier = can.Notifier(bus=self.bus, listeners=[])
+
+    def registerListener(self, listener):
+        self.notifier.add_listener(listener=listener)
+
+    def sendMessage(self, messageId, command, index, subindex, data=None):
+        messageData = []
+
+        # Add command specifier to message
+        messageData.append(command)
+
+        # Add index to message
+        packU16LittleEndian(index, messageData)
+
+        # Add subindex to message
+        messageData.append(subindex)
+
+        # Check if there is any data to add to the message
+        if not data == None:
+            packU32LittleEndian(data, messageData)
+
+        # Create message and send
+        message = can.Message(arbitration_id=messageId,
+                              data=messageData, is_extended_id=False)
+        self.bus.send(msg=message)
+
+
+class CanListener(can.BufferedReader):
+    """
+    Can listener
+    """
+
     def __init__(self):
         super().__init__()
 
-        # Set up variable memory map
-        self.memoryMap = {
-            'test': 0x40567862
-        }
+        self.registeredMessages = []
 
-        self.bus = can.interface.Bus(
-            channel='test', interface='virtual', bitrate=500000)
-        self.listeners = []
-        self.transmitters = []
+    def registerReceive(self, messageId):
+        """
+        Register a message id to listen for
+        """
+        self.registeredMessages.append(messageId)
 
-    def readVariableValue(self, variableName, callbackFunction, frequency):
-        # Get memory address for variable
-        if variableName not in self.memoryMap:
-            return callbackFunction(can.Message(data=[0x80, 0xF0, 0x20, 0x01, 0x00, 0x00, 0x00, 0x00]))
+    def on_message_received(self, msg):
+        """
+        Overload of can.BufferedReader.on_message_received()
+        """
+        if (msg.arbitration_id in self.registeredMessages):
+            return super().on_message_received(msg)
 
-        # Setup transmitter to send messages
-        message = can.Message(arbitration_id=0x50E, data=[
-                              0x40, 0xF0, 0x20, 0x01, 0x00, 0x00, 0x00, 0x00])
-        self.bus.send(message)
-
-        # Setup listener to listen to response
+    def get_message(self):
+        """
+        Overload of can.BufferedReader.get_message()
+        """
+        return super().get_message(timeout=0)

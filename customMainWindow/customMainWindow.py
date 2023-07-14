@@ -12,6 +12,9 @@ class CustomMainWindow(QMainWindow):
     def __init__(self, traceWindow, graphicsWindow, cmrWindow):
         super().__init__()
 
+        self.graphicsWindow = graphicsWindow
+        self.cmrWindow = cmrWindow
+
         # Customize main window
         self.setWindowTitle("CANPanion")
         self.setMinimumWidth(1280)
@@ -22,9 +25,11 @@ class CustomMainWindow(QMainWindow):
         )
 
         # Add toolbar
+        """
         self.toolBar = ToolBar()
         self.addToolBar(self.toolBar)
         self.toolBar.traceActiveStatus.connect(traceWindow.setTraceActive)
+        """
 
         # Create tab widget to hold other windows/layouts
         tabs = QTabWidget()
@@ -34,12 +39,16 @@ class CustomMainWindow(QMainWindow):
         tabs.setStyleSheet(style_tabs)
 
         # Create CMR window
-        tabs.addTab(cmrWindow, "CMR")
+        tabs.addTab(self.cmrWindow, "CMR")
 
         # Create the graphics window
-        tabs.addTab(graphicsWindow, "Graphics")
+        tabs.addTab(self.graphicsWindow, "Graphics")
 
         # Create the trace window
         # tabs.addTab(traceWindow, "Trace")
 
         self.setCentralWidget(tabs)
+
+    def update(self):
+        self.cmrWindow.update()
+        self.graphicsWindow.update()

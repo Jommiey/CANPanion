@@ -1,11 +1,14 @@
-from constants.constants import *
-from cmrWindow.cmrWindowStyles import *
-
-import can
-
+# Library includes
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 import qtawesome as qta
+import can
+
+# File includes
+from constants.constants import *
+from cmrWindow.cmrWindowStyles import *
+from canServer.canServer import *
+from utilities.utilities import *
 
 
 class CmrWindow(QWidget):
@@ -25,7 +28,7 @@ class CmrWindow(QWidget):
         self.setLayout(self.layout)
 
         # Setup AddVariableItemButton
-        self.addVariableItemButton = AddVariableItem()
+        self.addVariableItemButton = AddVariableItemButton()
         self.layout.addWidget(self.addVariableItemButton)
         self.layout.setAlignment(
             self.addVariableItemButton, Qt.AlignmentFlag.AlignHCenter)
@@ -34,10 +37,19 @@ class CmrWindow(QWidget):
         """
         Add a new VariableItem to layout
         """
-        self.layout.insertWidget(self.layout.count() - 1, VariableItem())
+        self.layout.insertWidget(
+            self.layout.count() - 1, VariableItem(self.canServer))
+
+    def update(self):
+        for variableItemIndex in range(0, self.layout.count() - 1):
+            try:
+                self.layout.itemAt(variableItemIndex).widget().update()
+            except AttributeError:
+                print("Failed to call update for:",
+                      self.layout.itemAt(variableItemIndex))
 
 
-class AddVariableItem(QPushButton):
+class AddVariableItemButton(QPushButton):
     """
     Class representing a button to create new VariableItems
     """
@@ -59,17 +71,23 @@ class AddVariableItem(QPushButton):
         """
         self.parentWidget().addVariableItem()
 
+    def update(self):
+        pass
+
 
 class VariableItem(QWidget):
     """
     Class representing a variable item
     """
-    messageResponseReceived = pyqtSignal(str, str)
 
-    def __init__(self):
+    def __init__(self, canServer):
         super().__init__()
 
-        self.messageResponseReceived.connect(self._setResultTextField)
+        # Setup listener
+        self.listener = CanListener()
+        self.listener.registerReceive(ICH_TO_CMR_SDO)
+        self.canServer = canServer
+        self.canServer.registerListener(self.listener)
 
         # Set layout
         self.layout = QGridLayout()
@@ -156,27 +174,25 @@ class VariableItem(QWidget):
         self.frameLayout.addWidget(self.resultScrollArea, 0, 4)
         self.frameLayout.setColumnStretch(4, 3)
 
-    def messageReceived(self, message):
-        self.messageResponseReceived.emit(
-            hex(message.data[0]), str(message.data[4]))
+    def _setResultTextField(self, data):
+        self.resultScrollArea.setStyleSheet(style_scrollAreaValid)
 
-    def _setResultTextField(self, status, text):
-        if status == '0x80':
-            self.resultScrollArea.setStyleSheet(style_scrollAreaInvalid)
-            self.resultTextField.setText("Unknown variable")
-        elif status == '0x60':
-            self.resultScrollArea.setStyleSheet(style_scrollAreaValid)
-            self.resultTextField.setText(text)
+        if data[0] == CANOPEN_READ_1_BYTE:
+            self.resultTextField.setText(str(data[4]))
+        elif data[0] == CANOPEN_READ_2_BYTE:
+            self.resultTextField.setText(str(unpackU16LittleEndian(4, data)))
+        elif data[0] == CANOPEN_READ_4_BYTE:
+            self.resultTextField.setText(str(unpackU32LittleEndian(4, data)))
         else:
-            self.resultScrollArea.setStyleSheet(style_scrollAreaInactive)
-            print('Unknown status')
+            self.resultScrollArea.setStyleSheet(style_scrollAreaInvalid)
+            self.resultTextField.setText("Read request aborted")
 
     def sendButtonClicked(self):
         """
         Send button clicked.
         """
-        self.parentWidget().canServer.readVariableValue(
-            self.inputTextField.text(), self.messageReceived, 0)
+        self.canServer.sendMessage(
+            CMR_TO_ICH_SDO, CANOPEN_READ, 0x20f0, 0x01, 0x54)
 
     def sendButtonReleased(self):
         """
@@ -194,10 +210,6 @@ class VariableItem(QWidget):
 
             # Disable text field
             self.timerTextField.setReadOnly(True)
-
-            # Start sending of periodic message
-            self.parentWidget().canServer.readVariableValue(
-                self.inputTextField.text(), self.messageReceived, int(self.timerTextField.text()))
         else:
             self.sendTimerButton.setIcon(
                 qta.icon('fa5.hourglass',
@@ -213,6 +225,7 @@ class VariableItem(QWidget):
         parentWidget = self.parentWidget()
 
         # Delete self
+        self.listener.stop()
         parentWidget.layout.removeWidget(self)
         self.deleteLater()
 
@@ -221,3 +234,12 @@ class VariableItem(QWidget):
         Remove button lost focus.
         """
         self.removeButton.clearFocus()
+
+    def update(self):
+        if self.sendTimerButton.isChecked():
+            self.canServer.sendMessage(
+                CMR_TO_ICH_SDO, CANOPEN_READ, 0x20f0, 0x02, 0x54)
+
+        message = self.listener.get_message()
+        if message:
+            self._setResultTextField(message.data)

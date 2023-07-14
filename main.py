@@ -20,10 +20,7 @@ def main():
     # Setup can server
     canServer = CanServer()
 
-    # Mock ICH in debug mode
-    if DEBUG:
-        ich = MockNode(0x0E)
-        ich.start()
+    ich = MockNode(0x0F, canServer)
 
     # Setup trace window
     traceWindow = TraceWindow(canServer)
@@ -37,11 +34,26 @@ def main():
     # Create main window
     mainWindow = CustomMainWindow(traceWindow, graphicsWindow, cmrWindow)
 
+    # Start thread to handle update functions
+    timer = QTimer()
+    timer.timeout.connect(lambda:
+                          update(traceWindow, graphicsWindow, cmrWindow, [ich]))
+    timer.start(20)
+
     # Show the window
     mainWindow.show()
 
     # Run the event loop
     app.instance().exec_()
+
+
+def update(traceWindow, graphicsWindow, cmrWindow, mockedNodes):
+    # traceWindow.update()
+    graphicsWindow.update()
+    cmrWindow.update()
+
+    for node in mockedNodes:
+        node.update()
 
 
 if __name__ == "__main__":
