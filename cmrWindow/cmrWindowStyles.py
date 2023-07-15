@@ -1,6 +1,6 @@
 from constants.constants import *
 
-style_sendTimerButtonInactive = """
+style_sendPeriodicButtonInactive = """
 QPushButton {
     background-color: %s;
     margin: 0px 10px 0px 0px;
@@ -26,7 +26,7 @@ QPushButton:pressed {
     COLORS[COLOR_SCHEME]['GREEN_FOCUSED']
 )
 
-style_sendTimerButtonActive = """
+style_sendPeriodicButtonActive = """
 QPushButton {
     background-color: %s;
     margin: 0px 10px 0px 0px;

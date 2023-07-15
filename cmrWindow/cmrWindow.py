@@ -38,15 +38,23 @@ class CmrWindow(QWidget):
         Add a new VariableItem to layout
         """
         self.layout.insertWidget(
-            self.layout.count() - 1, VariableItem(self.canServer))
+            self.layout.count() - 1, VariableItem(self.canServer, self.layout.count() - 1))
 
-    def update(self):
+    def preUpdate(self):
         for variableItemIndex in range(0, self.layout.count() - 1):
             try:
-                self.layout.itemAt(variableItemIndex).widget().update()
+                self.layout.itemAt(variableItemIndex).widget().preUpdate()
             except AttributeError:
-                print("Failed to call update for:",
-                      self.layout.itemAt(variableItemIndex))
+                print("Failed to call preUpdate for:",  # variableItemIndex)
+                      str(self.layout.itemAt(variableItemIndex)))
+
+    def postUpdate(self):
+        for variableItemIndex in range(0, self.layout.count() - 1):
+            try:
+                self.layout.itemAt(variableItemIndex).widget().postUpdate()
+            except AttributeError:
+                print("Failed to call postUpdate for:",
+                      str(self.layout.itemAt(variableItemIndex)))
 
 
 class AddVariableItemButton(QPushButton):
@@ -71,7 +79,10 @@ class AddVariableItemButton(QPushButton):
         """
         self.parentWidget().addVariableItem()
 
-    def update(self):
+    def preUpdate(self):
+        pass
+
+    def postUpdate(self):
         pass
 
 
@@ -80,8 +91,10 @@ class VariableItem(QWidget):
     Class representing a variable item
     """
 
-    def __init__(self, canServer):
+    def __init__(self, canServer, layoutCount):
         super().__init__()
+
+        self.expectingResponse = False
 
         # Setup listener
         self.listener = CanListener()
@@ -118,7 +131,8 @@ class VariableItem(QWidget):
 
         # Add text field
         self.inputTextField = QLineEdit()
-        self.inputTextField.setPlaceholderText("Enter variable name...")
+        self.inputTextField.setPlaceholderText(str(layoutCount))
+        # self.inputTextField.setPlaceholderText("Enter variable name...")
         self.inputTextField.setFixedSize(200, 45)
         self.inputTextField.setStyleSheet(style_variableNameTextField)
         self.frameLayout.addWidget(
@@ -145,17 +159,17 @@ class VariableItem(QWidget):
             self.timerTextField, 0, 2, Qt.AlignmentFlag.AlignTop)
 
         # Add button to send message on a timer
-        self.sendTimerButton = QPushButton()
-        self.sendTimerButton.setIcon(
+        self.sendPeriodicButton = QPushButton()
+        self.sendPeriodicButton.setIcon(
             qta.icon('fa5.hourglass',
                      color=COLORS[COLOR_SCHEME]['BACKGROUND_COLOR'])
         )
-        self.sendTimerButton.setCheckable(True)
-        self.sendTimerButton.setFixedSize(40, 45)
-        self.sendTimerButton.setStyleSheet(style_sendTimerButtonInactive)
-        self.sendTimerButton.clicked.connect(self.sendTimerButtonClicked)
+        self.sendPeriodicButton.setCheckable(True)
+        self.sendPeriodicButton.setFixedSize(40, 45)
+        self.sendPeriodicButton.setStyleSheet(style_sendPeriodicButtonInactive)
+        self.sendPeriodicButton.clicked.connect(self.sendPeriodicButtonClicked)
         self.frameLayout.addWidget(
-            self.sendTimerButton, 0, 3, Qt.AlignmentFlag.AlignTop)
+            self.sendPeriodicButton, 0, 3, Qt.AlignmentFlag.AlignTop)
 
         # Add result text field to a scrollable area
         self.resultScrollArea = QScrollArea()
@@ -191,8 +205,11 @@ class VariableItem(QWidget):
         """
         Send button clicked.
         """
-        self.canServer.sendMessage(
-            CMR_TO_ICH_SDO, CANOPEN_READ, 0x20f0, 0x01, 0x54)
+        if not self.sendPeriodicButton.isChecked():
+            # Only send messages if periodic is unchecked
+            self.canServer.sendMessage(
+                CMR_TO_ICH_SDO, CANOPEN_READ, 0x20f0, 0x01, 0x54)
+            self.expectingResponse = True
 
     def sendButtonReleased(self):
         """
@@ -200,18 +217,18 @@ class VariableItem(QWidget):
         """
         self.sendButton.clearFocus()
 
-    def sendTimerButtonClicked(self):
-        if self.sendTimerButton.isChecked():
+    def sendPeriodicButtonClicked(self):
+        if self.sendPeriodicButton.isChecked():
             # Start animating timer icon
-            self.sendTimerButton.setIcon(
+            self.sendPeriodicButton.setIcon(
                 qta.icon('fa5.hourglass',
-                         color=COLORS[COLOR_SCHEME]['BACKGROUND_COLOR'], animation=qta.Spin(self.sendTimerButton))
+                         color=COLORS[COLOR_SCHEME]['BACKGROUND_COLOR'], animation=qta.Spin(self.sendPeriodicButton))
             )
 
             # Disable text field
             self.timerTextField.setReadOnly(True)
         else:
-            self.sendTimerButton.setIcon(
+            self.sendPeriodicButton.setIcon(
                 qta.icon('fa5.hourglass',
                          color=COLORS[COLOR_SCHEME]['BACKGROUND_COLOR'])
             )
@@ -233,13 +250,27 @@ class VariableItem(QWidget):
         """
         Remove button lost focus.
         """
+
         self.removeButton.clearFocus()
 
-    def update(self):
-        if self.sendTimerButton.isChecked():
+    def preUpdate(self):
+        """
+        preUpdate function to receive messages
+        """
+
+        if self.expectingResponse:
+            # print(self.listener.get_message())
+            self._setResultTextField(self.listener.get_message().data)
+
+        self.expectingResponse = False
+
+    def postUpdate(self):
+        """
+        postUpdate function to send messages
+        """
+
+        # Check if periodic send is active, if so send message
+        if self.sendPeriodicButton.isChecked():
             self.canServer.sendMessage(
                 CMR_TO_ICH_SDO, CANOPEN_READ, 0x20f0, 0x02, 0x54)
-
-        message = self.listener.get_message()
-        if message:
-            self._setResultTextField(message.data)
+            self.expectingResponse = True

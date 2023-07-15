@@ -34,11 +34,20 @@ def main():
     # Create main window
     mainWindow = CustomMainWindow(traceWindow, graphicsWindow, cmrWindow)
 
-    # Start thread to handle update functions
-    timer = QTimer()
-    timer.timeout.connect(lambda:
-                          update(traceWindow, graphicsWindow, cmrWindow, [ich]))
-    timer.start(20)
+    # Start thread to handle preUpdate functions
+    preUpdateTimer = QTimer()
+    preUpdateTimer.timeout.connect(lambda:
+                                   preUpdate(canServer, traceWindow, graphicsWindow, cmrWindow, [ich]))
+    preUpdateTimer.start(20)
+
+    # Offset postUpdateTimer by PRE_UPDATE_MAXIMUM_TIME
+    time.sleep(PRE_UPDATE_MAXIMUM_TIME)
+
+    # Start thread to handle postUpdate functions
+    postUpdateTimer = QTimer()
+    postUpdateTimer.timeout.connect(lambda:
+                                    postUpdate(canServer, traceWindow, graphicsWindow, cmrWindow, [ich]))
+    postUpdateTimer.start(20)
 
     # Show the window
     mainWindow.show()
@@ -47,13 +56,46 @@ def main():
     app.instance().exec_()
 
 
-def update(traceWindow, graphicsWindow, cmrWindow, mockedNodes):
-    # traceWindow.update()
-    graphicsWindow.update()
-    cmrWindow.update()
+def preUpdate(canServer, traceWindow, graphicsWindow, cmrWindow, mockedNodes):
+    """
+    function to call preUpdate functions for all windows. 
+    """
+    startTime = time.time()
+
+    canServer.preUpdate()
+    # traceWindow.preUpdate()
+    # graphicsWindow.preUpdate()
+    cmrWindow.preUpdate()
 
     for node in mockedNodes:
-        node.update()
+        # node.preUpdate()
+        pass
+
+    executionTime = time.time() - startTime
+    if executionTime > PRE_UPDATE_MAXIMUM_TIME:
+        print("WARNING: Execution time: {:.6f} seconds".format(
+            time.time() - startTime))
+
+
+def postUpdate(canServer, traceWindow, graphicsWindow, cmrWindow, mockedNodes):
+    """
+    function to call postUpdate functions for all windows. 
+    """
+    startTime = time.time()
+
+    canServer.postUpdate()
+    # traceWindow.postUpdate()
+    # graphicsWindow.postUpdate()
+    cmrWindow.postUpdate()
+
+    for node in mockedNodes:
+        # node.postUpdate()
+        pass
+
+    executionTime = time.time() - startTime
+    if executionTime > POST_UPDATE_MAXIMUM_TIME:
+        print("WARNING: Execution time: {:.6f} seconds".format(
+            time.time() - startTime))
 
 
 if __name__ == "__main__":

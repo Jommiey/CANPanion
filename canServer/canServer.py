@@ -17,6 +17,7 @@ class CanServer(object):
                                      channel=0,
                                      bitrate=500000)
         self.notifier = can.Notifier(bus=self.bus, listeners=[])
+        self.messageQueue = []
 
     def registerListener(self, listener):
         self.notifier.add_listener(listener=listener)
@@ -37,13 +38,25 @@ class CanServer(object):
         if not data == None:
             packU32LittleEndian(data, messageData)
 
-        # Create message and send
+        # Create message and queue it
         message = can.Message(arbitration_id=messageId,
                               data=messageData, is_extended_id=False)
-        self.bus.send(msg=message)
+        self.messageQueue.append(message)
+
+    def preUpdate(self):
+        # Nothing to do
+        pass
+
+    def postUpdate(self):
+        # Send all messages in the queue
+        for message in self.messageQueue:
+            self.bus.send(msg=message)
+
+        # Flush queue
+        self.messageQueue = []
 
 
-class CanListener(can.BufferedReader):
+class CanListener(can.Listener):
     """
     Can listener
     """
@@ -64,10 +77,10 @@ class CanListener(can.BufferedReader):
         Overload of can.BufferedReader.on_message_received()
         """
         if (msg.arbitration_id in self.registeredMessages):
-            return super().on_message_received(msg)
+            self.receivedMessage = msg
 
     def get_message(self):
         """
         Overload of can.BufferedReader.get_message()
         """
-        return super().get_message(timeout=0)
+        return self.receivedMessage
